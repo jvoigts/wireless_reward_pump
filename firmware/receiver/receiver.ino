@@ -10,10 +10,13 @@
 #include <SPI.h>
 #include <RH_NRF24.h>
 
-#define GEAR_RATIO 1.0
+#define GEAR_RATIO 100.0
 #define MOT_DIR 3
 #define MOT_STEP 2
 #define MOT_SLP 1
+
+#define BUTTON_A 22
+#define BUTTON_B 21
 
 RH_NRF24 nrf24(14, 15);  //
 AccelStepper motor(AccelStepper::DRIVER, MOT_STEP, MOT_DIR);
@@ -41,6 +44,9 @@ void setup() {
   pinMode(MOT_SLP, OUTPUT);
   pinMode(MOT_DIR, OUTPUT);
   pinMode(MOT_STEP, OUTPUT);
+
+  pinMode(BUTTON_A,INPUT_PULLDOWN);
+  pinMode(BUTTON_B,INPUT_PULLDOWN);
 
   digitalWriteFast(MOT_SLP, LOW);  // deactivate driver
 
@@ -70,6 +76,18 @@ void loop() {
   if (mainTimer > 1000 * 10) {  // set frequency in usec --------
     mainTimer = 0;
 
+    if (digitalRead(BUTTON_A)==HIGH) {
+        digitalWriteFast(MOT_SLP, HIGH);  // activate driver
+             running_timer=0;
+        motor.move(-1000);
+    }
+    if (digitalRead(BUTTON_B)==HIGH) {
+        digitalWriteFast(MOT_SLP, HIGH);  // activate driver
+             running_timer=0;
+        motor.move(1000);
+        
+    }
+
     if (motor.isRunning()) {
      running_timer=0;
     }
@@ -92,7 +110,7 @@ void loop() {
           //digitalWrite(1, LOW);
           Serial.println(rotation_in);
           digitalWriteFast(MOT_SLP, HIGH);  // activate driver
-          motor.move(rotation_in*GEAR_RATIO);
+          motor.move(-rotation_in*GEAR_RATIO);
           // 4x microstepping (MS2 is pulled high)
           // gear ratio from he
           // got 2oo steps/rev on motor
